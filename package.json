@@ -1,71 +1,41 @@
 {
-  "name": "esbuild-plugin-sass",
-  "version": "0.5.0",
-  "description": "Plugin for esbuild to support SASS styles",
-  "main": "index.js",
-  "types": "index.d.ts",
+  "name": "esbuild-plugin-sass-modules",
+  "version": "0.0.2",
+  "description": "Plugin for esbuild to support SASS styles using css modules.",
+  "main": "lib/index.mjs",
+  "types": "lib/index.d.ts",
   "scripts": {
-    "all": "npm-run-all --serial --print-label",
-    "build": "tsc",
-    "test:unit": "tape 'tests/*.js'",
-    "test": "npm run all build test:*",
-    "prepare": "npm run build"
+    "start": "tsc --watch",
+    "build": "rimraf lib && tsc",
+    "test": "npm run all build test:*"
   },
   "author": {
-    "name": "Nikolai Mavrenkov",
-    "email": "koluch@koluch.ru",
-    "url": "koluch.ru"
+    "name": "David Zearing",
+    "email": "dzearing@microsoft.com"
   },
-  "license": "ISC",
+  "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/koluch/esbuild-plugin-sass.git"
+    "url": "https://github.com/dzearing/esbuild-plugin-sass-modules.git"
   },
   "keywords": [
     "esbuild",
     "plugin",
-    "sass"
+    "sass",
+    "modules"
   ],
   "dependencies": {
-    "css-tree": "^1.1.2",
-    "fs-extra": "^9.0.1",
-    "sass": "^1.32.4",
-    "tmp": "^0.2.1"
-  },
-  "peerDependencies": {
-    "esbuild": ">=0.11.14"
+    "@ms-cloudpack/get-package": "^0.0.1",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0",
+    "postcss-modules": "^4.2.2",
+    "sass": "^1.34.1"
   },
   "devDependencies": {
-    "@types/css-tree": "^1.0.5",
-    "@types/fs-extra": "^9.0.8",
     "@types/node": "^14.14.35",
     "@types/sass": "^1.16.0",
-    "@types/tmp": "^0.2.0",
-    "esbuild": "^0.11.14",
-    "husky": "^4.3.7",
-    "lint-staged": "^10.5.3",
-    "npm-run-all": "^4.1.5",
     "prettier": "^2.2.1",
-    "tap-spec": "^5.0.0",
-    "tape": "^5.1.1",
-    "typescript": "^4.2.3"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npx lint-staged"
-    }
-  },
-  "lint-staged": {
-    "*.js": [
-      "npx prettier --write"
-    ]
-  },
-  "files": [
-    "index.js",
-    "index.d.ts",
-    "index.d.ts.map",
-    "internals/*.d.js",
-    "internals/*.d.ts",
-    "internals/*.d.ts.map"
-  ]
+    "typescript": "^4.5.2",
+    "jest": "27.3.1"
+  }
 }

@@ -1,0 +1,6 @@
+.github
+.nvmrc
+.prettierrc.json
+src
+tests
+tsconfig.json
