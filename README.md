@@ -33,7 +33,7 @@ Create file `build.js`:
 
 ```js
 const esbuild = require('esbuild');
-const sassPlugin = require('esbuild-plugin-sass')
+const sassPlugin = require('esbuild-plugin-sass-modules')
 
 esbuild.build({
     entryPoints: ['src/index.js'],

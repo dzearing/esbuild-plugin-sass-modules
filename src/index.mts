@@ -3,10 +3,19 @@ import path from "path";
 import postcss from "postcss";
 import autoprefixer from "autoprefixer";
 import modules from "postcss-modules";
-
+import resolve from 'resolve'
 import fs from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
+
+export type ResolveMap = {
+  [packageName: string]: {
+    path: string;
+  }
+};
+export interface SassModulePluginOptions {
+  resolveMap?: ResolveMap;
+}
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const { readFile } = fs.promises;
@@ -25,7 +34,8 @@ function parseImportPath(importPath) {
   return { packageName, filePath };
 }
 
-const resolveSassImport = (url, resolveMap) => {
+const resolveSassImport = (url: string, originalPath: string, resolveMap?: ResolveMap): null | { file: string; } => {
+  console.log(`resolveSassImport, ${url}, ${originalPath}, ${JSON.stringify(resolveMap, null, 2)}`);
   if (pathLookups[url]) {
     return { file: pathLookups[url] };
   }
@@ -39,24 +49,19 @@ const resolveSassImport = (url, resolveMap) => {
   }
 
   if (packageImportPath) {
-    const { packageName, filePath } = parseImportPath(packageImportPath);
-    if (!resolveMap[packageName]) {
-      throw new Error(
-        `SASS: The package ${packageName} was not in the resolveMap!`
-      );
-    }
+    const { packageName, filePath } = parseImportPath(packageImportPath);  
+    const resolvedPath = resolveMap?.[packageName]?.path || path.dirname(resolve.sync(packageName + '/package.json', { basedir: path.dirname(originalPath) }));
 
     console.log(
-      `SASS: Trying to resolve "${url}", packageName: "${packageName}", packageImportPath="${packageImportPath}", resolveMap="${JSON.stringify(
-        resolveMap[packageName],
+      `SASS: Trying to resolve "${url}", packageName: "${packageName}", packageImportPath="${packageImportPath}", resolvedPath="${JSON.stringify(
+        resolvedPath,
         null,
         2
       )}"`
     );
 
-    const resolvedPath = (Object.entries(
-      resolveMap[packageName] || {}
-    )[0]?.[1] || "") as string;
+    
+ 
     const newPath = path.join(resolvedPath, filePath.replace("/lib/", "/src/"));
 
     console.log(`Translated ${packageName}${filePath} to "${newPath}"`);
@@ -68,11 +73,12 @@ const resolveSassImport = (url, resolveMap) => {
   return null;
 };
 
-function renderSass(filePath, resolveMap) {
+function renderSass(filePath: string, resolveMap?: ResolveMap): string {
+  console.log(`SASS: RENDERING SASS`, filePath);
   return sass
     .renderSync({
       file: filePath,
-      importer: (url) => resolveSassImport(url, resolveMap),
+      importer: (url) => resolveSassImport(url, filePath, resolveMap),
     })
     .css.toString();
 }
@@ -126,14 +132,6 @@ function createLoader(content, modules) {
   return result.join(`\n`);
 }
 
-export interface SassModulePluginOptions {
-  resolveMap?: {
-    [packageName: string]: {
-      [version: string]: string;
-    };
-  };
-}
-
 const sassModulePlugin = (options: SassModulePluginOptions = {}) => ({
   name: "sass",
   setup: async function (build) {
@@ -153,7 +151,8 @@ const sassModulePlugin = (options: SassModulePluginOptions = {}) => ({
       { filter: /.\.(sass|scss|css)$/, namespace: "file" },
       async (args) => {
         const isSass = !!args.path.match(/.\.(sass|scss)$/);
-        const isModule = true; // !!args.path.match(/\.module\./);
+        const isModule = !args.path.match(/\.global\./);
+
         let cssContent: string = isSass
           ? renderSass(args.path, resolveMap)
           : (await readFile(args.path, "utf8")).toString();
